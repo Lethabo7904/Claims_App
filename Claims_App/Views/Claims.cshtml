@@ -1,0 +1,78 @@
+﻿@{
+    Layout = "_Layout";
+    var myClaims = ViewBag.MyClaims as List<ClaimsApp.Models.ClaimRecord> ?? new();
+    string role = ViewBag.Role ?? "lecturer";
+}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card p-4 mb-4">
+            <h2>Submit a Claim</h2>
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+            <form method="post" enctype="multipart/form-data" asp-controller="Claims" asp-action="Submit">
+                <div class="mb-3">
+                    <label class="form-label">Hours Worked</label>
+                    <input name="HoursWorked" class="form-control" placeholder="e.g. 8" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hourly Rate</label>
+                    <input name="HourlyRate" class="form-control" placeholder="e.g. 300.00" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea name="Notes" class="form-control" placeholder="Optional notes"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Upload Supporting Document</label>
+                    <input type="file" name="upload" class="form-control" />
+                    <div class="form-text">Allowed: .pdf, .docx, .xlsx — max 5MB</div>
+                </div>
+                <button class="btn btn-primary">Submit Claim</button>
+            </form>
+        </div>
+        <div class="card p-3">
+            <h3>Claim Status</h3>
+            <table class="table">
+                <thead><tr><th>Date</th><th>Hours</th><th>Rate</th><th>Status</th></tr></thead>
+                <tbody id="claimsTable">
+                    @foreach (var c in myClaims)
+                    {
+                        <tr>
+                            <td>@c.DateSubmitted.ToLocalTime().ToString("dd MMM")</td>
+                            <td>@c.HoursWorked</td>
+                            <td>@c.HourlyRate</td>
+                            <td><span class="status-badge status-@c.Status.ToString()">@c.Status.ToString()</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h4>For Managers</h4>
+            <p>Go to <a href="/Admin/Index">Verify & Approve claims</a> (admin view).</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/claimshub").build();
+        connection.on("ClaimStatusChanged", (id, status) => {
+            // In a production app, request updated data via fetch and re-render;
+            // here, we show a simple toast or reload the page
+            console.log("Claim status changed", id, status);
+            // For demo, reload to see updates:
+            location.reload();
+        });
+        connection.start().catch(err => console.error(err));
+    </script>
+}

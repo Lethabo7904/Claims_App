@@ -1,0 +1,40 @@
+﻿@using System
+@using System.Linq
+@using System.Globalization
+@model IEnumerable<ClaimsApp.Models.ClaimRecord>
+
+@{
+    ViewData["Title"] = "Claims Dashboard";
+    var claims = Model ?? Enumerable.Empty<ClaimsApp.Models.ClaimRecord>();
+}
+
+<h2 class="mb-3">Lecturer Claims</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Lecturer Name</th>
+            <th>Hours Worked</th>
+            <th>Hourly Rate</th>
+            <th>Status</th>
+            <th>Date Submitted</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in claims)
+        {
+            <tr>
+                <td>@claim.LecturerName</td>
+                <td>@claim.HoursWorked</td>
+                <td>@claim.HourlyRate.ToString("C")</td>
+                <td>@claim.Status</td>
+                <td>@claim.DateSubmitted.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!claims.Any())
+{
+    <p>No claims have been submitted yet.</p>
+}

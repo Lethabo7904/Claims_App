@@ -1,0 +1,55 @@
+﻿@model List<ClaimsApp.Models.ClaimRecord>
+@{
+    Layout = "_Layout";
+}
+<div class="card p-3">
+    <h2>Verify and Approve Claims</h2>
+    <table class="table">
+        <thead><tr><th>Lecturer</th><th>Hours</th><th>Rate</th><th>Total</th><th>Document</th><th>Action</th></tr></thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.LecturerName</td>
+                    <td>@c.HoursWorked</td>
+                    <td>@c.HourlyRate</td>
+                    <td>@(c.HourlyRate * (decimal)c.HoursWorked)</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(c.UploadedFilePath))
+                        {
+                            <a class="btn btn-link" asp-controller="Claims" asp-action="Download" asp-route-id="@c.Id">View File</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>
+                        <form method="post" asp-controller="Admin" asp-action="UpdateStatus" style="display:inline">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <input type="hidden" name="action" value="approve" />
+                            <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                        </form>
+                        <form method="post" asp-controller="Admin" asp-action="UpdateStatus" style="display:inline">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <input type="hidden" name="action" value="reject" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        const hub = new signalR.HubConnectionBuilder().withUrl("/claimshub").build();
+        hub.on("ClaimSubmitted", id => {
+            // New claim submitted — reload or fetch updated list
+            console.log("New claim submitted:", id);
+            location.reload();
+        });
+        hub.start().catch(e => console.error(e));
+    </script>
+}
